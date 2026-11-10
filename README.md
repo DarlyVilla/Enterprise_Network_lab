@@ -294,7 +294,7 @@ Extension 1001 calls extension 1002 through the Cisco CME router.
    ```bash
    git clone (https://github.com/DarlyVilla/Enterprise_Network_lab
    ```
-3. Open `lab/PROJECT1_Fase_7.pkt`.
+3. Open (lab/PROJECT1_Fase_7.pkt).
 4. Wait 1 to 2 minutes for OSPF and HSRP to converge, then run the verification commands.
 
 > Lab credentials are intentionally not published (`<REDACTED>` in the configs). If you paste the configs into your own devices, set your own passwords and generate the RSA key once with `crypto key generate rsa modulus 1024` so SSH v2 works.
