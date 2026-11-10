@@ -228,22 +228,22 @@ ephone-dn 2
 ### Link state and inter-VLAN routing (VLAN 10 host)
 All links are up. A Retail PC (VLAN 10) reaches the internet server `8.8.8.8` through NAT/PAT and a host in VLAN 20 through the HSRP gateway and SVIs. The first packet in each test is lost while ARP resolves; the rest succeed.
 
-![Topology and VLAN 10 ping](docs/screenshots/inter-vlan-ping-vlan10.png)
+![Topology and VLAN 10 ping](inter-vlan-ping-vlan10.png)
 
 ### Inter-VLAN routing and internet (VLAN 20 host)
 An IT PC (VLAN 20) pings `8.8.8.8` and a VLAN 10 host with 0% loss.
 
-![VLAN 20 ping](docs/screenshots/inter-vlan-ping-vlan20.png)
+![VLAN 20 ping](inter-vlan-ping-vlan20.png)
 
 ### DHCP server pools
 Three pools (VLAN 10, 20, 120) with the HSRP virtual IP as default gateway; the voice pool carries option 150.
 
-![DHCP Server Pools](docs/screenshots/dhcp-server-pools.png)
+![DHCP Server Pools](dhcp-server-pools.png)
 
 ### DHCP lease (VLAN 20 client)
 The client received `192.168.20.12/24` with gateway `192.168.20.1` (HSRP VIP).
 
-![DHCP Client](docs/screenshots/dhcp-client-ipconfig.png)
+![DHCP Client](dhcp-client-ipconfig.png)
 
 ### OSPF adjacencies on the core switch
 CSW has FULL adjacencies with the edge router and both distribution switches.
@@ -253,7 +253,7 @@ CSW has FULL adjacencies with the edge router and both distribution switches.
 ### EtherChannel on DSW1
 Po1 (routed, to CSW) and Po12 (Layer 2 trunk, to DSW2) are bundled with LACP.
 
-![EtherChannel summary](docs/screenshots/etherchannel-dsw1.png)
+![EtherChannel summary](ospf-neighbors-csw.png)
 
 ### Secure remote management (SSH)
 username admin
@@ -261,17 +261,17 @@ password AdminLab123!
 enable password AdminLab123!
 The management PC in VLAN 99 opens SSH sessions to the edge router, CSW, DSW1, DSW2 and the VoIP router.
 
-![SSH success](docs/screenshots/ssh-success.png)
+![SSH success](ssh-success.png)
 
 ### Management ACL blocks other VLANs
 The same SSH attempts from a Retail PC (VLAN 10) are refused, proving that `access-class 99` limits device access to the management subnet.
 
-![SSH blocked by ACL](docs/screenshots/ssh-acl-blocked.png)
+![SSH blocked by ACL](ssh-acl-blocked.png)
 
 ### IP telephony
 Extension 1001 calls extension 1002 through the Cisco CME router.
 
-![IP phone call](docs/screenshots/ip-phone-call.png)
+![IP phone call](ip-phone-call.png)
 
 ### Verification commands
 | Test | Command | Expected result |
@@ -326,8 +326,8 @@ Extension 1001 calls extension 1002 through the Cisco CME router.
 - IPv6 addressing
 
 ## Author
-**Darly** _(update with your full name)_
-- GitHub: [@darlyvilla](https://https://github.com/DarlyVilla)
+**Darly Villa**
+- GitHub: [@darlyvilla](https://github.com/DarlyVilla)
 - LinkedIn: [Darly Villa](https://www.linkedin.com/in/darly-villa-37016b1b0/)
 
 ---
