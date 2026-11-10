@@ -1,0 +1,136 @@
+! ============================================================
+! DSW1 - Distribution switch 1
+! STP root + HSRP active for VLANs 10, 20, 120
+! Sanitized for public release (secrets removed)
+! ============================================================
+hostname DSW1
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip routing
+!
+ip domain-name darlylab.local
+ip ssh version 2
+!
+spanning-tree mode rapid-pvst
+spanning-tree vlan 10,20,120 priority 24576
+spanning-tree vlan 30,99 priority 28672
+!
+interface Loopback0
+ ip address 10.255.255.3 255.255.255.255
+!
+! Routed LACP port-channel to CSW
+interface Port-channel1
+ no switchport
+ ip address 10.0.0.6 255.255.255.252
+!
+! L2 LACP trunk to DSW2
+interface Port-channel12
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 150
+ switchport trunk allowed vlan 10,20,30,99,120,150
+ switchport mode trunk
+!
+! VoIP-CME router port
+interface FastEthernet0/1
+ switchport access vlan 120
+ switchport mode access
+!
+! Trunks to access switches
+interface range FastEthernet0/2 - 3
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 150
+ switchport trunk allowed vlan 10,20,30,99,120,150
+ switchport mode trunk
+!
+interface range FastEthernet0/4 - 5
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface range GigabitEthernet0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 150
+ switchport trunk allowed vlan 10,20,30,99,120,150
+ switchport mode trunk
+ channel-group 12 mode active
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan10
+ description SVI Vlan 10 Retail
+ ip address 192.168.10.2 255.255.255.0
+ ip helper-address 192.168.30.10
+ standby version 2
+ standby 10 ip 192.168.10.1
+ standby 10 priority 110
+ standby 10 preempt
+!
+interface Vlan20
+ description SVI Vlan 20 IT
+ ip address 192.168.20.2 255.255.255.0
+ ip helper-address 192.168.30.10
+ standby version 2
+ standby 20 ip 192.168.20.1
+ standby 20 priority 110
+ standby 20 preempt
+!
+interface Vlan30
+ description SVI Vlan 30 Servers
+ ip address 192.168.30.2 255.255.255.0
+ standby version 2
+ standby 30 ip 192.168.30.1
+ standby 30 preempt
+!
+interface Vlan99
+ description SVI Vlan 99 Management
+ ip address 192.168.99.2 255.255.255.0
+ standby version 2
+ standby 99 ip 192.168.99.1
+ standby 99 preempt
+!
+interface Vlan120
+ description SVI Vlan 120 Voice
+ ip address 192.168.120.2 255.255.255.0
+ ip helper-address 192.168.30.10
+ standby version 2
+ standby 120 ip 192.168.120.1
+ standby 120 priority 110
+ standby 120 preempt
+!
+router ospf 1
+ router-id 10.255.255.3
+ log-adjacency-changes
+ passive-interface Vlan10
+ passive-interface Vlan20
+ passive-interface Vlan30
+ passive-interface Vlan99
+ passive-interface Vlan120
+ network 10.0.0.4 0.0.0.3 area 0
+ network 10.255.255.3 0.0.0.0 area 0
+ network 192.168.10.0 0.0.0.255 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+ network 192.168.30.0 0.0.0.255 area 0
+ network 192.168.99.0 0.0.0.255 area 0
+ network 192.168.120.0 0.0.0.255 area 0
+!
+ip classless
+!
+access-list 99 permit 192.168.99.0 0.0.0.255
+access-list 99 deny any
+!
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login local
+!
+line vty 0 15
+ access-class 99 in
+ login local
+ transport input ssh
+ privilege level 15
+!
+end

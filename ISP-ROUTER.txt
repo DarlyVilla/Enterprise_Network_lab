@@ -1,0 +1,41 @@
+! ============================================================
+! ISP-ROUTER - simulated ISP / internet
+! Sanitized for public release (secrets removed)
+! ============================================================
+hostname ISP-ROUTER
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip cef
+no ipv6 cef
+!
+ip ssh version 2
+spanning-tree mode pvst
+!
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+!
+interface GigabitEthernet0/0/0
+ description WAN to EDGE-ROUTER
+ ip address 200.31.10.1 255.255.255.252
+!
+interface GigabitEthernet0/0/1
+ description To Web_Server (8.8.8.8)
+ ip address 8.8.8.1 255.255.255.0
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+!
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login local
+!
+line vty 0 4
+ login
+!
+end

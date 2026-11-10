@@ -1,0 +1,76 @@
+! ============================================================
+! CSW - Layer 3 core switch
+! Sanitized for public release (secrets removed)
+! ============================================================
+hostname CSW
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip routing
+!
+ip domain-name darlylab.local
+ip ssh version 2
+!
+spanning-tree mode rapid-pvst
+!
+interface Loopback0
+ ip address 10.255.255.2 255.255.255.255
+!
+! Routed LACP port-channel to DSW1
+interface Port-channel1
+ no switchport
+ ip address 10.0.0.5 255.255.255.252
+!
+! Routed LACP port-channel to DSW2
+interface Port-channel2
+ no switchport
+ ip address 10.0.0.9 255.255.255.252
+!
+interface FastEthernet0/1
+ shutdown
+!
+interface range FastEthernet0/2 - 3
+ no switchport
+ no ip address
+ channel-group 2 mode active
+!
+interface range FastEthernet0/4 - 5
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet0/1
+ description Uplink to EDGE-ROUTER Gi0/0/1
+ no switchport
+ ip address 10.0.0.2 255.255.255.252
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ router-id 10.255.255.2
+ log-adjacency-changes
+ network 10.0.0.0 0.0.0.3 area 0
+ network 10.0.0.4 0.0.0.3 area 0
+ network 10.0.0.8 0.0.0.3 area 0
+ network 10.255.255.2 0.0.0.0 area 0
+!
+ip classless
+!
+access-list 99 permit 192.168.99.0 0.0.0.255
+access-list 99 deny any
+!
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login local
+!
+line vty 0 15
+ access-class 99 in
+ login local
+ transport input ssh
+ privilege level 15
+!
+end

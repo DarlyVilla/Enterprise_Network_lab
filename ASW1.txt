@@ -1,0 +1,61 @@
+! ============================================================
+! ASW1 - Access switch 1 (Layer 2)
+! Sanitized for public release (secrets removed)
+! After pasting: generate the RSA key once (not stored in running-config):
+!   crypto key generate rsa modulus 1024
+! ============================================================
+hostname ASW1
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip domain-name darlylab.local
+ip ssh version 2
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+! Trunks to DSW1 and DSW2
+interface range FastEthernet0/1 - 2
+ switchport trunk native vlan 150
+ switchport trunk allowed vlan 10,20,30,99,120,150
+ switchport mode trunk
+!
+! VLAN 20 IT host
+interface FastEthernet0/3
+ switchport access vlan 20
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+! VLAN 10 host behind IP phone (voice VLAN 120)
+interface FastEthernet0/4
+ switchport access vlan 10
+ switchport mode access
+ switchport voice vlan 120
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+! In-band management
+interface Vlan99
+ description Management SVI
+ ip address 192.168.99.11 255.255.255.0
+ no shutdown
+!
+ip default-gateway 192.168.99.1
+!
+access-list 99 permit 192.168.99.0 0.0.0.255
+access-list 99 deny any
+!
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login local
+!
+line vty 0 15
+ access-class 99 in
+ login local
+ transport input ssh
+ privilege level 15
+!
+end

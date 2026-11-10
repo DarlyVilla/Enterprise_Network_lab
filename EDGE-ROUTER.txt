@@ -1,0 +1,68 @@
+! ============================================================
+! EDGE-ROUTER - NAT/PAT, default route to ISP, OSPF default injection
+! Sanitized for public release (secrets removed)
+! ============================================================
+hostname EDGE-ROUTER
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip cef
+no ipv6 cef
+!
+ip domain-name darlylab.local
+ip ssh version 2
+!
+spanning-tree mode pvst
+!
+interface Loopback0
+ ip address 10.255.255.1 255.255.255.255
+!
+interface GigabitEthernet0/0/0
+ description WAN to ISP-ROUTER (NAT outside)
+ ip address 200.31.10.2 255.255.255.252
+ ip nat outside
+!
+interface GigabitEthernet0/0/1
+ description LAN to CSW Gi0/1 (NAT inside)
+ ip address 10.0.0.1 255.255.255.252
+ ip nat inside
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ router-id 10.255.255.1
+ log-adjacency-changes
+ network 10.0.0.0 0.0.0.3 area 0
+ network 10.255.255.1 0.0.0.0 area 0
+ default-information originate
+!
+ip nat inside source list 1 interface GigabitEthernet0/0/0 overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 200.31.10.1
+!
+! NAT inside range
+access-list 1 permit 192.168.10.0 0.0.0.255
+access-list 1 permit 192.168.20.0 0.0.0.255
+access-list 1 permit 192.168.30.0 0.0.0.255
+access-list 1 permit 192.168.99.0 0.0.0.255
+access-list 1 permit 192.168.120.0 0.0.0.255
+!
+! SSH access: management VLAN only
+access-list 99 permit 192.168.99.0 0.0.0.255
+access-list 99 deny any
+!
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+ login local
+!
+line vty 0 15
+ access-class 99 in
+ login local
+ transport input ssh
+ privilege level 15
+!
+end

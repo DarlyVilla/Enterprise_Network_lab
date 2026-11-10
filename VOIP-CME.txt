@@ -1,0 +1,73 @@
+! ============================================================
+! VOIP-CME - Cisco Unified Communications Manager Express
+! Sanitized for public release (secrets removed)
+! After pasting: generate the RSA key once (not stored in running-config):
+!   crypto key generate rsa modulus 1024
+! ============================================================
+hostname VOIP-CME
+!
+enable secret <REDACTED>
+username admin privilege 15 secret <REDACTED>
+!
+ip cef
+no ipv6 cef
+!
+ip domain-name darlylab.local
+ip ssh version 2
+!
+spanning-tree mode pvst
+!
+interface FastEthernet0/0
+ no ip address
+ shutdown
+!
+interface FastEthernet0/1
+ description To DSW1 Fa0/1 (VLAN 120)
+ ip address 192.168.120.4 255.255.255.0
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 192.168.120.1
+!
+access-list 99 permit 192.168.99.0 0.0.0.255
+access-list 99 deny any
+!
+telephony-service
+ max-ephones 5
+ max-dn 5
+ ip source-address 192.168.120.4 port 2000
+ auto assign 1 to 5
+!
+ephone-dn 1
+ number 1001
+!
+ephone-dn 2
+ number 1002
+!
+ephone 1
+ device-security-mode none
+ mac-address 00E0.B0B5.326A
+ type 7960
+ button 1:1
+!
+ephone 2
+ device-security-mode none
+ mac-address 00E0.F731.9EAD
+ type 7960
+ button 1:2
+!
+line con 0
+ logging synchronous
+ login local
+!
+line vty 0 15
+ access-class 99 in
+ logging synchronous
+ login local
+ transport input ssh
+ privilege level 15
+!
+end
