@@ -5,7 +5,7 @@ username admin
 password AdminLab123!
 enable password AdminLab123!
 
-![Network Topology]DarlyLab_drawio.png
+![Network Topology](DarlyLab_drawio.png)
 
 ---
 
