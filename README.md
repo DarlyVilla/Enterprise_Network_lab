@@ -248,12 +248,12 @@ The client received `192.168.20.12/24` with gateway `192.168.20.1` (HSRP VIP).
 ### OSPF adjacencies on the core switch
 CSW has FULL adjacencies with the edge router and both distribution switches.
 
-![OSPF neighbors](docs/screenshots/ospf-neighbors-csw.png)
+![OSPF neighbors](ospf-neighbors-csw.png)
 
 ### EtherChannel on DSW1
 Po1 (routed, to CSW) and Po12 (Layer 2 trunk, to DSW2) are bundled with LACP.
 
-![EtherChannel summary](ospf-neighbors-csw.png)
+![EtherChannel summary](etherchannel-dsw1.png)
 
 ### Secure remote management (SSH)
 username admin
