@@ -292,7 +292,7 @@ Extension 1001 calls extension 1002 through the Cisco CME router.
 1. Install **Cisco Packet Tracer** (version used: _add version_).
 2. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/<repo-name>.git](https://github.com/DarlyVilla/Enterprise_Network_lab
+   git clone (https://github.com/DarlyVilla/Enterprise_Network_lab
    ```
 3. Open `lab/PROJECT1_Fase_7.pkt`.
 4. Wait 1 to 2 minutes for OSPF and HSRP to converge, then run the verification commands.
