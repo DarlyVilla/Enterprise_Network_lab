@@ -16,6 +16,7 @@ enable password AdminLab123!
 - [Design Highlights](#design-highlights)
 - [Configuration Highlights](#configuration-highlights)
 - [Verification and Testing](#verification-and-testing)
+- [Troubleshooting Log](#troubleshooting-log)
 - [Known Limitations](#known-limitations)
 - [How to Run the Lab](#how-to-run-the-lab)
 - [Repository Structure](#repository-structure)
@@ -282,6 +283,82 @@ Extension 1001 calls extension 1002 through the Cisco CME router.
 | STP roots | `show spanning-tree root` | Roots match the planned VLAN split |
 | EtherChannel | `show etherchannel summary` | Po1, Po2, Po12 in use (`SU` / `RU`) |
 | NAT | `show ip nat translations` | Inside addresses translated to 200.31.10.2 |
+
+## Troubleshooting Log
+
+Problems I ran into while building the lab, how I diagnosed them, and what fixed them.
+
+| # | Problem | Root cause | Fix |
+|---|---|---|---|
+| 1 | DSW1-DSW2 EtherChannel not working | Ports were set with `no switchport` (Layer 3) on a link that had to be a Layer 2 trunk | Rebuilt the bundle as a Layer 2 LACP trunk |
+| 2 | Could not switch CSW-DSW1 bundle from PAgP to LACP | Packet Tracer does not support `no channel-group ... mode desirable` | Deleted the port-channel and reset the interfaces, then reconfigured with LACP |
+| 3 | VoIP service could not run on the switch | The Layer 3 switch does not support `telephony-service` | Added a Cisco CME router for telephony |
+| 4 | CSW-DSW2 EtherChannel stayed down | Native VLAN 150 did not exist on CSW and DSW2 | Created VLAN 150 on both switches and bounced the links |
+| 5 | Duplicate IP address in VLAN 120 | DSW2's SVI and the VoIP router both used `192.168.120.3` | Moved the VoIP router to `192.168.120.4` |
+
+### 1. DSW1-DSW2 EtherChannel configured as Layer 3
+**Symptom:** The bundle between the distribution switches did not come up as a working trunk.
+
+**Cause:** I applied `no switchport` to the member interfaces, which makes them routed ports. This link needs to be Layer 2 so it can carry the VLANs as a trunk.
+
+**Resolution:**
+1. Shut down the member interfaces.
+2. Deleted the Port-channel interface.
+3. Brought the interfaces back up.
+4. Recreated the bundle with LACP (`active`), leaving the ports as Layer 2 switchports configured as a trunk.
+
+```
+interface range GigabitEthernet0/1 - 2
+ shutdown
+!
+no interface Port-channel12
+!
+interface range GigabitEthernet0/1 - 2
+ no shutdown
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 150
+ switchport trunk allowed vlan 10,20,30,99,120,150
+ switchport mode trunk
+ channel-group 12 mode active
+```
+**Lesson:** Decide the layer first. Use `no switchport` only on links that must be routed (core to distribution). Layer 2 trunk bundles keep `switchport`.
+
+### 2. Changing the CSW-DSW1 EtherChannel from PAgP to LACP
+**Symptom:** I started with PAgP on Po1, then decided to standardize on LACP. Running `no channel-group 1 mode desirable` returned `% This command is not supported by Cisco Packet Tracer`.
+
+**Resolution:**
+1. Deleted Po1 on both DSW1 and CSW.
+2. Shut down the physical interfaces while rebuilding, to avoid a temporary Spanning Tree loop.
+3. Reset the member interfaces to defaults (`default interface range ...`).
+4. Configured the bundle again with `channel-group 1 mode active` on both sides.
+
+**Lesson:** Both ends of a bundle must use the same protocol (LACP or PAgP, never mixed). When a simulator rejects a command, removing the port-channel and resetting the interfaces is faster than trying to edit it in place. Shutting the links first protects the network from loops during the change.
+
+### 3. VoIP could not be configured on the switch
+**Symptom:** I first tried to configure telephony on the Layer 3 switch, but it did not recognize the `telephony-service` commands.
+
+**Resolution:**
+- Added a dedicated Cisco CME router (`VOIP-CME`) in VLAN 120 and configured the telephony service there (extensions 1001 and 1002).
+- Added **DHCP option 150** to the voice pool on the DHCP server so phones learn the CME address automatically.
+- Added a static default route on the CME router toward the VLAN 120 gateway (`192.168.120.1`) so it can answer devices outside its own VLAN.
+
+**Lesson:** Call control (CME) needs a router platform. Phones get their TFTP/call-agent address from DHCP option 150, so the DHCP pool and the CME source address must match.
+
+### 4. CSW-DSW2 EtherChannel stayed down
+**Symptom:** The bundle from CSW to DSW2 did not come up.
+
+**Diagnosis:** I reviewed the VLAN configuration and found that the native VLAN (150) had never been created on DSW2 and CSW.
+
+**Resolution:** Created VLAN 150 on both switches, shut down the port-channel and the physical interfaces, then brought them back up so the bundle renegotiated.
+
+**Lesson:** Check that the VLANs referenced by a trunk (including the native VLAN) exist on both ends. Useful commands: `show vlan brief`, `show interfaces trunk`, `show etherchannel summary`.
+
+### 5. Duplicate IP address in VLAN 120
+**Symptom:** During a configuration review, `DSW2` (SVI Vlan120) and `VOIP-CME` were both using `192.168.120.3`.
+
+**Resolution:** Changed the VoIP router to `192.168.120.4` and updated the `telephony-service ip source-address` and the DHCP option 150 value to match.
+
+**Lesson:** Keep an addressing table and check it against the running configs. Duplicate addresses cause intermittent, confusing failures.
 
 ## Known Limitations
 - `ISP-ROUTER` is a simulated internet device and is not hardened with SSH or an ACL.
