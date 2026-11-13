@@ -5,7 +5,7 @@ username admin
 password AdminLab123!
 enable password AdminLab123!
 
-![Network Topology](DarlyLab_drawio.png)
+![Network Topology](DarlyLab.drawio.png)
 
 ---
 
@@ -366,7 +366,7 @@ interface range GigabitEthernet0/1 - 2
 - No port security, DHCP snooping or Dynamic ARP Inspection yet.
 
 ## How to Run the Lab
-1. Install **Cisco Packet Tracer** (version used: _add version_).
+1. Install **Cisco Packet Tracer** (version used:9.0.0.0810).
 2. Clone the repository:
    ```bash
    git clone (https://github.com/DarlyVilla/Enterprise_Network_lab
